@@ -154,6 +154,12 @@ local function criarVermelhoHub()
         createToggle("Farm GoldBar", function(v) autoFarmActive = v end, autoFarmActive)
     end
 
+
+    local function tabEvento()
+        clearContent()
+        createToggle("Farm Radioative Coin", function(v) autoFarmActive = v end, autoFarmActive)
+    end
+    
     local function tabMisc()
         clearContent()
         createToggle("Fly (Voo)", function(v) flyActive = v; if v then startFly() end end, flyActive)
