@@ -11,7 +11,7 @@ local antiAfkActive = false
 local flyActive = false
 local flySpeed = 50 
 
--- [ FUNÇÃO DE VOO (FLY) ]
+-- [ FUNÇÃO DE VOO ]
 local function startFly()
     local char = player.Character or player.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -33,7 +33,7 @@ local function startFly()
     end)
 end
 
--- [ FUNÇÃO DE FARM MESTRE (BUSCA POR NOME OU PARTE DO NOME) ]
+-- [ FUNÇÃO DE FARM ]
 local function executarFarm(tipoBusca)
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
@@ -48,7 +48,6 @@ local function executarFarm(tipoBusca)
             elseif tipoBusca == "GOLD" and obj.Name == "GoldBar" then
                 devePuxar = true
             elseif tipoBusca == "RADIOACTIVE" and obj.Name == "Radioactive Coin" then
-                -- Mantendo sua regra de segurança para a Radioactive
                 if obj:FindFirstAncestor("EventParts") or obj.Parent.Name == "Radioactive Coin" then
                     devePuxar = true
                 end
@@ -56,19 +55,18 @@ local function executarFarm(tipoBusca)
 
             if devePuxar then
                 obj.CanCollide = false
-                obj.Anchored = false -- Importante para soltar o item do chão
+                obj.Anchored = false 
                 obj.CFrame = hrp.CFrame
             end
         end
     end
 end
 
--- [ INTERFACE VERMELHO HUB ]
+-- [ INTERFACE ]
 local function criarVermelhoHub()
     if player.PlayerGui:FindFirstChild("VermelhoHubGui") then player.PlayerGui.VermelhoHubGui:Destroy() end
     local sg = Instance.new("ScreenGui", player.PlayerGui); sg.Name = "VermelhoHubGui"; sg.ResetOnSpawn = false
     
-    -- Botão de Minimizar (V)
     local minBtn = Instance.new("TextButton", sg); minBtn.Size = UDim2.new(0, 50, 0, 50); minBtn.Position = UDim2.new(0, 10, 0.5, -25); minBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0); minBtn.Text = "V"; minBtn.TextColor3 = Color3.fromRGB(255, 0, 0); minBtn.Font = "GothamBold"; minBtn.TextSize = 25; minBtn.Active = true; minBtn.Draggable = true; Instance.new("UICorner", minBtn).CornerRadius = UDim.new(1, 0)
 
     local main = Instance.new("Frame", sg); main.Size = UDim2.new(0, 420, 0, 280); main.Position = UDim2.new(0.5, -210, 0.5, -140); main.BackgroundColor3 = Color3.fromRGB(15, 15, 15); main.Active = true; main.Draggable = true; Instance.new("UICorner", main)
@@ -91,30 +89,38 @@ local function criarVermelhoHub()
         b.MouseButton1Click:Connect(function() clearContent(); func() end)
     end
 
-    -- ABA EVENTO
-    addTab("Evento", function()
+    -- DEFINIÇÃO DAS ABAS
+    local function abaEvento()
         clearContent()
         createToggle("Farm All Coins", function(v) farmAllCoinsActive = v end, farmAllCoinsActive)
         createToggle("Farm GoldBar", function(v) farmGoldActive = v end, farmGoldActive)
         createToggle("Farm Radioactive", function(v) farmRadioactiveActive = v end, farmRadioactiveActive)
-    end)
+    end
 
-    -- ABA MISC
-    addTab("Misc", function()
+    local function abaMisc()
         clearContent()
         createToggle("Fly (Voo)", function(v) flyActive = v; if v then startFly() end end, flyActive)
         local speedInput = Instance.new("TextBox", content); speedInput.Size = UDim2.new(0.95, 0, 0, 35); speedInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40); speedInput.Text = tostring(flySpeed); speedInput.TextColor3 = Color3.new(1, 1, 1); speedInput.PlaceholderText = "Velocidade Fly"; Instance.new("UICorner", speedInput)
         speedInput.FocusLost:Connect(function() flySpeed = tonumber(speedInput.Text) or 50 end)
         createToggle("Anti-AFK", function(v) antiAfkActive = v end, antiAfkActive)
-    end)
+    end
 
-    -- ABA FPS
-    addTab("FPS", function()
+    local function abaFPS()
         clearContent()
         local b = Instance.new("TextButton", content); b.Size = UDim2.new(0.95, 0, 0, 40); b.Text = "Remover Texturas (Lag)"; b.BackgroundColor3 = Color3.fromRGB(30, 30, 30); b.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", b)
         b.MouseButton1Click:Connect(function() for _, v in pairs(game:GetDescendants()) do if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic elseif v:IsA("Decal") then v:Destroy() end end end)
-    end)
+    end
 
+    -- ADICIONA OS BOTÕES NA SIDEBAR
+    addTab("Evento", abaEvento)
+    addTab("Misc", abaMisc)
+    addTab("FPS", abaFPS)
+
+    -- ABRE NA ABA EVENTO AUTOMATICAMENTE
+    abaEvento()
+end
+
+-- [ LOOPS ]
 task.spawn(function()
     while true do
         pcall(function()
@@ -126,7 +132,6 @@ task.spawn(function()
     end
 end)
 
--- Anti-AFK
 player.Idled:Connect(function() if antiAfkActive then VirtualUser:CaptureController(); VirtualUser:ClickButton2(Vector2.new()) end end)
 
 criarVermelhoHub()
