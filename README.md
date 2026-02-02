@@ -3,8 +3,9 @@ local player = Players.LocalPlayer
 local runService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 
+local farmUFOActive =false
 local farmGoldActive = false
-local farmRadioactiveActive = false -- Um botão para as duas lógicas de Radioactive
+local farmRadioactiveActive = false 
 local antiAfkActive = false
 local flyActive = false
 local flySpeed = 50 
@@ -28,6 +29,31 @@ local function startFly()
         end
         if velocity then velocity:Destroy() end if gyro then gyro:Destroy() end if hum then hum.PlatformStand = false end
     end)
+end
+local function coletarUFO()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local fila = {}
+    -- Busca em todo o mapa (Lógica 1)
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name == "UFO Coin" and obj:IsA("BasePart") then
+            -- Verifica se está nas pastas certas (Lógica 2)
+            if obj:FindFirstAncestor("EventParts") or obj.Parent.Name == "UFO Coin" then
+                table.insert(fila, obj)
+            end
+        end
+    end
+
+    -- Executa o teleporte da fila
+    for _, moeda in ipairs(fila) do
+        if not farmUFOActive then break end
+        if moeda and moeda.Parent then
+            moeda.CanCollide = false
+            moeda.CFrame = hrp.CFrame
+            task.wait(0.01)
+        end
+    end
 end
 
 -- [FUNÇÃO DE TELEPORTE UNIFICADA PARA RADIOACTIVE]
