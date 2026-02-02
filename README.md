@@ -93,7 +93,7 @@ local function criarVermelhoHub()
     local function abaEvento()
         clearContent()
         createToggle("Farm All Coins", function(v) farmAllCoinsActive = v end, farmAllCoinsActive)
-        createToggle("Farm GoldBar", function(v) farmGoldActive = v end, farmGoldActive)
+        createToggle("Farm GoldBar(beta)", function(v) farmGoldActive = v end, farmGoldActive)
         createToggle("Farm Radioactive", function(v) farmRadioactiveActive = v end, farmRadioactiveActive)
     end
 
