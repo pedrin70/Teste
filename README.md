@@ -4,8 +4,8 @@ local runService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 
 -- Variáveis Únicas
-local autoFarmActive = false
-local autoFarmActive = false
+local autoFarmRadioactive = false
+local autoFarmGold = false
 local antiAfkActive = false
 local flyActive = false
 local flySpeed = 50 
@@ -151,14 +151,51 @@ local function criarVermelhoHub()
     -- Criação das Abas
     local function tabEvento()
         clearContent()
-        createToggle("Farm GoldBar", function(v) autoFarmActive = v end, autoFarmActive)
+        createToggle("Farm GoldBar", function(v) autoFarmGold = v end, autoFarmGold)
     end
 
-
-    local function tabEvento()
-        clearContent()
-        createToggle("Farm Radioative Coin", function(v) autoFarmActive = v end, autoFarmActive)
+local function coletarRadioactive()
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+    
+    local fila = {}
+    
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name == itemName and obj:IsA("BasePart") then
+            -- Verificação de segurança (EventParts) vinda do segundo script
+            if obj:FindFirstAncestor("EventParts") or obj.Parent.Name == itemName then
+                table.insert(fila, obj)
+            end
+        end
     end
+
+    -- Parte vinda do script de execução (Teleporte)
+    for _, moeda in ipairs(fila) do
+        if not farmRadioactiveActive then break end
+        if moeda and moeda.Parent then
+            moeda.CanCollide = false -- Garante que não bata em nada
+            moeda.CFrame = hrp.CFrame
+            task.wait(0.01) -- Velocidade de processamento
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        if autoFarmRadioactive then
+            pcall(function()
+                coletarRadioactive()
+            end)
+        end
+        task.wait(0.5) -- Intervalo entre as buscas no mapa
+    end
+end)
+
+-- createToggle("Farm Radioactive", function(v) 
+--    autoFarmRadioactive = v 
+-- end, autoFarmRadioactive)
+
     
     local function tabMisc()
         clearContent()
