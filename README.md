@@ -33,30 +33,39 @@ local function startFly()
     end)
 end
 
--- [ FUNÇÃO DE FARM ]
-local function executarFarm(tipoBusca)
+-- [ FUNÇÃO DE FARM - SISTEMA IGUAL AO RADIOACTIVE ]
+local function executarFarm()
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
     for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            local devePuxar = false
-            local nomeBaixo = string.lower(obj.Name)
-
-            if tipoBusca == "ALL_COINS" and string.find(nomeBaixo, "coin") then
+        local devePuxar = false
+        
+        -- SISTEMA GOLD (IGUAL AO RADIOACTIVE)
+        if farmGoldActive and obj.Name == "Main" then
+            -- Verifica se o pai é GoldBar e se está na pasta MoneyEventParts (como na foto)
+            if obj.Parent.Name == "GoldBar" and obj:FindFirstAncestor("MoneyEventParts") then
                 devePuxar = true
-            elseif tipoBusca == "GOLD" and obj.Name == "GoldBar" then
+            end
+        
+        -- SISTEMA RADIOACTIVE
+        elseif farmRadioactiveActive and obj.Name == "Radioactive Coin" then
+            if obj:FindFirstAncestor("EventParts") or obj.Parent.Name == "Radioactive Coin" then
                 devePuxar = true
-            elseif tipoBusca == "RADIOACTIVE" and obj.Name == "Radioactive Coin" then
-                if obj:FindFirstAncestor("EventParts") or obj.Parent.Name == "Radioactive Coin" then
-                    devePuxar = true
-                end
             end
 
-            if devePuxar then
-                obj.CanCollide = false
-                obj.Anchored = false 
-                obj.CFrame = hrp.CFrame
+        -- SISTEMA ALL COINS
+        elseif farmAllCoinsActive and string.find(string.lower(obj.Name), "coin") then
+            devePuxar = true
+        end
+
+        -- EXECUÇÃO DA COLETA
+        if devePuxar and obj:IsA("BasePart") then
+            obj.CanCollide = false
+            obj.CFrame = hrp.CFrame
+            if firetouchinterest then
+                firetouchinterest(hrp, obj, 0)
+                firetouchinterest(hrp, obj, 1)
             end
         end
     end
@@ -89,49 +98,38 @@ local function criarVermelhoHub()
         b.MouseButton1Click:Connect(function() clearContent(); func() end)
     end
 
-    -- DEFINIÇÃO DAS ABAS
     local function abaEvento()
         clearContent()
-        createToggle("Farm All Coins", function(v) farmAllCoinsActive = v end, farmAllCoinsActive)
-        createToggle("Farm GoldBar(beta)", function(v) farmGoldActive = v end, farmGoldActive)
-        createToggle("Farm Radioactive", function(v) farmRadioactiveActive = v end, farmRadioactiveActive)
+        createToggle("Farm UFO Coins(fase de testes)", function(v) farmAllCoinsActive = v end, farmAllCoinsActive)
+        createToggle("Farm GoldBar (beta)", function(v) farmGoldActive = v end, farmGoldActive)
+        createToggle("Farm Radioactive(fase de testes)", function(v) farmRadioactiveActive = v end, farmRadioactiveActive)
     end
 
-    local function abaMisc()
+    addTab("Evento", abaEvento)
+    addTab("Misc", function()
         clearContent()
         createToggle("Fly (Voo)", function(v) flyActive = v; if v then startFly() end end, flyActive)
-        local speedInput = Instance.new("TextBox", content); speedInput.Size = UDim2.new(0.95, 0, 0, 35); speedInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40); speedInput.Text = tostring(flySpeed); speedInput.TextColor3 = Color3.new(1, 1, 1); speedInput.PlaceholderText = "Velocidade Fly"; Instance.new("UICorner", speedInput)
-        speedInput.FocusLost:Connect(function() flySpeed = tonumber(speedInput.Text) or 50 end)
         createToggle("Anti-AFK", function(v) antiAfkActive = v end, antiAfkActive)
-    end
+    end)
 
-    local function abaFPS()
+    addTab("FPS", function()
         clearContent()
-        local b = Instance.new("TextButton", content); b.Size = UDim2.new(0.95, 0, 0, 40); b.Text = "Remover Texturas (Lag)"; b.BackgroundColor3 = Color3.fromRGB(30, 30, 30); b.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", b)
-        b.MouseButton1Click:Connect(function() for _, v in pairs(game:GetDescendants()) do if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic elseif v:IsA("Decal") then v:Destroy() end end end)
-    end
+        local b = Instance.new("TextButton", content); b.Size = UDim2.new(0.95, 0, 0, 40); b.Text = "Remover Texturas"; b.BackgroundColor3 = Color3.fromRGB(30, 30, 30); b.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", b)
+        b.MouseButton1Click:Connect(function() 
+            for _, v in pairs(game:GetDescendants()) do if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic elseif v:IsA("Decal") then v:Destroy() end end 
+        end)
+    end)
 
-    -- ADICIONA OS BOTÕES NA SIDEBAR
-    addTab("Evento", abaEvento)
-    addTab("Misc", abaMisc)
-    addTab("FPS", abaFPS)
-
-    -- ABRE NA ABA EVENTO AUTOMATICAMENTE
     abaEvento()
 end
 
--- [ LOOPS ]
+-- [ LOOP ]
 task.spawn(function()
     while true do
-        pcall(function()
-            if farmAllCoinsActive then executarFarm("ALL_COINS") end
-            if farmGoldActive then executarFarm("GOLD") end
-            if farmRadioactiveActive then executarFarm("RADIOACTIVE") end
-        end)
-        task.wait(0.5)
+        pcall(executarFarm)
+        task.wait(0.3)
     end
 end)
 
 player.Idled:Connect(function() if antiAfkActive then VirtualUser:CaptureController(); VirtualUser:ClickButton2(Vector2.new()) end end)
-
 criarVermelhoHub()
